@@ -2,19 +2,19 @@
 
 # IP-Checker
 
-Export open port intelligence for IP addresses using Shodan and Censys.
+Export open port and service information for IP addresses using **Shodan**.
 
-This tool reads a list of IPs from a CSV file, queries both platforms, and generates a unified output file for quick reconnaissance and attack-surface visibility.
+This tool reads a list of IPs from a CSV file, queries Shodan, and generates a structured CSV output for reconnaissance, security assessment, or reporting purposes.
 
 ---
 
 ## Features
 
-* Query Shodan and Censys simultaneously
-* Extract open ports only (noise-free output)
+* Query Shodan for each IP
+* Extract open ports and detected services
 * Automatically removes duplicate IPs
 * Handles API errors gracefully
-* Clean CSV output for reporting or further automation
+* Generates a clean CSV output, easy to analyze
 
 ---
 
@@ -23,17 +23,15 @@ This tool reads a list of IPs from a CSV file, queries both platforms, and gener
 Install dependencies:
 
 ```bash
-pip install shodan censys
+pip install shodan
 ```
 
-You will also need API credentials from both platforms.
+You will also need a **Shodan API key**.
 
-Set them inside the script:
+Set it inside the script:
 
 ```python
-SHODAN_API_KEY = "YOUR_SHODAN_KEY"
-CENSYS_ID = "YOUR_ID"
-CENSYS_SECRET = "YOUR_SECRET"
+SHODAN_API_KEY = "YOUR_SHODAN_API_KEY"
 ```
 
 ---
@@ -59,7 +57,7 @@ Example:
 10.10.10.10
 ```
 
-⚠️ One IP per line — no headers required.
+⚠️ One IP per line — no header required.
 
 ---
 
@@ -84,58 +82,46 @@ will be generated.
 Example output:
 
 ```csv
-ip,censys_result,shodan_result
-8.8.8.8,53,53
-1.1.1.1,53,53
-10.10.10.10,none,443
+ip,ports,services
+8.8.8.8,53,53:DNS
+1.1.1.1,53,53:DNS
+10.10.10.10,80,80:Apache | 443:nginx
 ```
 
 ---
 
 ## Output Meaning
 
-| Value   | Description                                  |
-| ------- | -------------------------------------------- |
-| `none`  | No open ports detected                       |
-| `error` | API query failed (rate limit, timeout, etc.) |
+| Column     | Description                                     |
+| ---------- | ----------------------------------------------- |
+| `ports`    | List of open ports                              |
+| `services` | Detected service for each port (`port:product`) |
+| `none`     | No open ports detected                          |
+| `error`    | API query failed (rate limit, timeout, etc.)    |
 
 ---
 
 ## Important Notes
 
-### Rate Limiting
-
-The script includes a short delay between requests to avoid API throttling.
-Reducing the delay may speed up scans but increases the risk of temporary bans.
-
-### Scan Duration
-
-Execution time depends on:
-
-* Number of IPs
-* Network latency
-* API response speed
-
-Expect roughly **2–3 seconds per IP** in sequential mode.
+* **Rate Limiting**: The script includes a short delay (`time.sleep(1)`) between requests to avoid throttling. Reducing this delay may increase speed but risks temporary bans.
+* **Scan Duration**: Expect ~2–3 seconds per IP in sequential mode.
+* **Unknown Services**: If a service could not be identified, `unknown` will appear. This often indicates custom, hidden, or misconfigured services.
 
 ---
 
 ## Recommended Improvements (Optional)
 
-If you plan to evolve this into a production-grade reconnaissance tool, consider adding:
+For a more advanced reconnaissance workflow:
 
-* Threading (5 workers is usually a safe starting point)
+* Threading (e.g., 5 workers) for faster scans
 * Retry logic for transient API failures
+* Include additional Shodan fields like `org`, `country`, or `timestamp`
 * Change detection between scans
-* JSON output for pipeline ingestion
-* Alerting when new ports appear
+* JSON output for pipeline integration
+* Alerting on new or changed services
 
 ---
 
 ## Disclaimer
 
-Use this tool responsibly and only against assets you own or are authorized to assess. Always follow applicable laws, platform policies, and ethical security practices.
-
----
-
-If you want later, this README can be pushed one level higher into “serious open‑source project” territory by adding badges, a sample architecture diagram, Docker support, or a threaded version benchmark — the kinds of small signals that make a repository feel trustworthy within seconds.
+Use this tool responsibly and only on IPs you own or are authorized to scan. Always comply with applicable laws, platform policies, and ethical security practices.
