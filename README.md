@@ -1,5 +1,3 @@
----
-
 # IP-Checker
 
 Export open port and service information for IP addresses using **Shodan**.
